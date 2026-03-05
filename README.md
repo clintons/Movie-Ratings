@@ -12,6 +12,7 @@ A web application, minimalist style, for tracking and rating movies and TV mini-
 - 📝 Edit existing entries
 - 🐳 Fully Dockerized for easy deployment
 - 🎨 Minimalist design with plenty of white space
+![example page](assets/screengrab.png)
 
 ## Prerequisites
 
