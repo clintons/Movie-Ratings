@@ -1,6 +1,6 @@
 # Movie Ratings List
 
-A web application, minimalist style, for tracking and rating movies and TV mini-series viewings. In days past a shared spreadsheet served this puropose. This is the web version with an actual database and when exercising the movie posters display option feature, somewhat more than what the orig spreadsheet can do.
+A web application, minimalist style, for tracking and rating movies and TV mini-series viewings. In days past a shared spreadsheet served this puropose. This is the web version with database. Import your CSV. There is a movie posters import and display feature option, an enhancement over what the orig spreadsheet could do.
 
 ## Features
 
