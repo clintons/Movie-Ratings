@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies Viewed - Login</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Playfair Display', serif;
+            background: linear-gradient(180deg, #1a1a3e 0%, #2d2d5e 30%, #4a4a7e 60%, #1a1a3e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Stars in sky */
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 3px white;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        /* Hollywood skyline */
+        .skyline {
+            position: absolute;
+            bottom: 200px;
+            left: 0;
+            width: 100%;
+            height: 300px;
+            background: 
+                /* Buildings */
+                linear-gradient(to top, #1a1a2e 0%, #1a1a2e 100%);
+            clip-path: polygon(
+                0% 100%, 0% 60%, 8% 50%, 8% 70%, 12% 65%, 12% 55%, 18% 45%, 18% 75%, 
+                25% 70%, 25% 40%, 30% 35%, 30% 80%, 38% 75%, 38% 30%, 45% 25%, 45% 85%,
+                52% 80%, 52% 20%, 58% 15%, 58% 90%, 65% 85%, 65% 35%, 72% 30%, 72% 75%,
+                78% 70%, 78% 50%, 85% 45%, 85% 80%, 92% 75%, 92% 60%, 100% 55%, 100% 100%
+            );
+            opacity: 0.4;
+        }
+        
+        /* Searchlight beams */
+        .searchlight {
+            position: absolute;
+            bottom: 200px;
+            width: 150px;
+            height: 600px;
+            background: linear-gradient(
+                to top,
+                rgba(173, 216, 230, 0.3) 0%,
+                rgba(173, 216, 230, 0.1) 50%,
+                transparent 100%
+            );
+            transform-origin: bottom center;
+            animation: sweep 8s ease-in-out infinite;
+        }
+        
+        .searchlight:nth-child(1) { left: 15%; animation-delay: 0s; }
+        .searchlight:nth-child(2) { left: 45%; animation-delay: 2s; }
+        .searchlight:nth-child(3) { right: 25%; animation-delay: 4s; }
+        
+        @keyframes sweep {
+            0%, 100% { transform: rotate(-15deg); opacity: 0.3; }
+            50% { transform: rotate(15deg); opacity: 0.5; }
+        }
+        
+        /* Red carpet */
+        .red-carpet {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+            height: 250px;
+            background: linear-gradient(
+                to bottom,
+                #8b0000 0%,
+                #a52a2a 50%,
+                #8b0000 100%
+            );
+            clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+            box-shadow: 
+                inset 0 0 50px rgba(0, 0, 0, 0.5),
+                0 -10px 30px rgba(139, 0, 0, 0.5);
+        }
+        
+        /* Red carpet texture */
+        .red-carpet::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent 0px,
+                rgba(0, 0, 0, 0.1) 2px,
+                transparent 4px
+            );
+        }
+        
+        /* Velvet ropes */
+        .rope-left, .rope-right {
+            position: absolute;
+            bottom: 100px;
+            width: 300px;
+            height: 8px;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                #daa520 10%,
+                #ffd700 50%,
+                #daa520 90%,
+                transparent 100%
+            );
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(218, 165, 32, 0.6);
+        }
+        
+        .rope-left {
+            left: 0;
+            transform: rotate(-5deg);
+        }
+        
+        .rope-right {
+            right: 0;
+            transform: rotate(5deg);
+        }
+        
+        /* Palm trees */
+        .palm {
+            position: absolute;
+            bottom: 150px;
+            width: 80px;
+            height: 150px;
+            opacity: 0.6;
+        }
+        
+        .palm.left { left: 50px; }
+        .palm.right { right: 50px; transform: scaleX(-1); }
+        
+        .palm-trunk {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 100px;
+            background: linear-gradient(to right, #2d2d2d 0%, #1a1a1a 100%);
+            border-radius: 3px;
+        }
+        
+        .palm-frond {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform-origin: bottom center;
+            width: 40px;
+            height: 60px;
+            background: #1a1a1a;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+        
+        .palm-frond:nth-child(1) { transform: translateX(-50%) rotate(-30deg); }
+        .palm-frond:nth-child(2) { transform: translateX(-50%) rotate(-10deg); }
+        .palm-frond:nth-child(3) { transform: translateX(-50%) rotate(10deg); }
+        .palm-frond:nth-child(4) { transform: translateX(-50%) rotate(30deg); }
+        
+        /* Camera silhouette */
+        .camera {
+            position: absolute;
+            bottom: 120px;
+            right: 100px;
+            width: 100px;
+            height: 100px;
+            opacity: 0.5;
+        }
+        
+        .camera-body {
+            width: 60px;
+            height: 50px;
+            background: #1a1a1a;
+            position: absolute;
+            bottom: 20px;
+            left: 10px;
+            border-radius: 5px;
+        }
+        
+        .camera-lens {
+            width: 40px;
+            height: 40px;
+            background: #2d2d2d;
+            border: 5px solid #1a1a1a;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 25px;
+            left: 0;
+        }
+        
+        .camera-reel {
+            width: 35px;
+            height: 35px;
+            background: #1a1a1a;
+            border: 5px solid #2d2d2d;
+            border-radius: 50%;
+            position: absolute;
+        }
+        
+        .camera-reel:nth-child(1) { top: 0; left: 0; }
+        .camera-reel:nth-child(2) { top: 0; right: 0; }
+        
+        /* Login container */
+        .login-container {
+            background: rgba(10, 10, 20, 0.9);
+            border: 3px solid #daa520;
+            padding: 50px 45px;
+            width: 440px;
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.9),
+                0 0 50px rgba(218, 165, 32, 0.3),
+                inset 0 0 40px rgba(218, 165, 32, 0.05);
+            position: relative;
+            z-index: 10;
+            border-radius: 2px;
+        }
+        
+        /* Corner stars */
+        .corner-star {
+            position: absolute;
+            font-size: 24px;
+            color: #daa520;
+            text-shadow: 0 0 10px #daa520;
+        }
+        
+        .corner-star.tl { top: -15px; left: -15px; }
+        .corner-star.tr { top: -15px; right: -15px; }
+        .corner-star.bl { bottom: -15px; left: -15px; }
+        .corner-star.br { bottom: -15px; right: -15px; }
+        
+        h1 {
+            color: #daa520;
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 5px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 
+                0 0 20px rgba(218, 165, 32, 0.5),
+                2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .subtitle {
+            color: #b8860b;
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 35px;
+            letter-spacing: 2px;
+            font-style: italic;
+        }
+        
+        .divider {
+            height: 2px;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                #daa520 20%,
+                #daa520 80%,
+                transparent 100%
+            );
+            margin: 25px 0;
+            box-shadow: 0 0 10px rgba(218, 165, 32, 0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            color: #daa520;
+            margin-bottom: 8px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #8b7355;
+            border-bottom: 2px solid #daa520;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        input:focus {
+            background: rgba(0, 0, 0, 0.7);
+            border-color: #daa520;
+            box-shadow: 0 0 15px rgba(218, 165, 32, 0.3);
+        }
+        
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #daa520 0%, #b8860b 100%);
+            border: 2px solid #8b6914;
+            color: #000;
+            font-size: 32px;
+            font-weight: normal;
+            cursor: pointer;
+            font-family: 'Great Vibes', cursive;
+            transition: all 0.3s;
+            box-shadow: 
+                0 5px 20px rgba(218, 165, 32, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 25px rgba(218, 165, 32, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Generate stars */
+        .stars-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <!-- Stars -->
+    <div class="stars-container" id="stars"></div>
+    
+    <!-- Searchlights -->
+    <div class="searchlight"></div>
+    <div class="searchlight"></div>
+    <div class="searchlight"></div>
+    
+    <!-- Skyline -->
+    <div class="skyline"></div>
+    
+    <!-- Palm trees -->
+    <div class="palm left">
+        <div class="palm-frond"></div>
+        <div class="palm-frond"></div>
+        <div class="palm-frond"></div>
+        <div class="palm-frond"></div>
+        <div class="palm-trunk"></div>
+    </div>
+    <div class="palm right">
+        <div class="palm-frond"></div>
+        <div class="palm-frond"></div>
+        <div class="palm-frond"></div>
+        <div class="palm-frond"></div>
+        <div class="palm-trunk"></div>
+    </div>
+    
+    <!-- Camera -->
+    <div class="camera">
+        <div class="camera-reel"></div>
+        <div class="camera-reel"></div>
+        <div class="camera-body"></div>
+        <div class="camera-lens"></div>
+    </div>
+    
+    <!-- Red carpet -->
+    <div class="red-carpet"></div>
+    
+    <!-- Velvet ropes -->
+    <div class="rope-left"></div>
+    <div class="rope-right"></div>
+    
+    <!-- Login form -->
+    <div class="login-container">
+        <div class="corner-star tl">★</div>
+        <div class="corner-star tr">★</div>
+        <div class="corner-star bl">★</div>
+        <div class="corner-star br">★</div>
+        
+        <h1>Movies Viewed</h1>
+        <div class="subtitle">...and rated</div>
+        <div class="divider"></div>
+        
+        {% if error %}
+        <div style="background: rgba(139, 0, 0, 0.8); border: 2px solid #ff0000; padding: 12px; margin-bottom: 20px; border-radius: 4px; color: #fff; text-align: center;">
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit">Private</button>
+        </form>
+    </div>
+    
+    <script>
+        // Generate random stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 60 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+    </script>
+</body>
+</html>

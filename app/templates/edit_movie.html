@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Edit Movie</h1>
+    
+    <form method="post" class="movie-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="title">Movie Title *</label>
+                <input type="text" id="title" name="title" value="{{ movie.title }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="year">Year</label>
+                <input type="number" id="year" name="year" value="{{ movie.year or '' }}" min="1800" max="2100">
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="date_dad_watched">Date Dad Watched</label>
+                <input type="date" id="date_dad_watched" name="date_dad_watched" 
+                       value="{{ movie.date_dad_watched.strftime('%Y-%m-%d') if movie.date_dad_watched else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="date_k_watched">Date K Watched</label>
+                <input type="date" id="date_k_watched" name="date_k_watched"
+                       value="{{ movie.date_k_watched.strftime('%Y-%m-%d') if movie.date_k_watched else '' }}">
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="streaming">Streaming Service</label>
+                <input type="text" id="streaming" name="streaming" value="{{ movie.streaming or '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="lang_country">Lang/Country</label>
+                <input type="text" id="lang_country" name="lang_country" value="{{ movie.lang_country or '' }}">
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="genre">Genre</label>
+                <select id="genre" name="genre">
+                    <option value="">-- Select Genre --</option>
+                    {% for genre in genres %}
+                    <option value="{{ genre }}" {% if movie.genre == genre %}selected{% endif %}>{{ genre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="dad_category">Dad's Category</label>
+                <select id="dad_category" name="dad_category">
+                    <option value="">-- Select Category --</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}" {% if movie.dad_category == category %}selected{% endif %}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="k_rating">K's Rating</label>
+                <input type="text" id="k_rating" name="k_rating" value="{{ movie.k_rating or '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="dad_rating">Dad's Rating</label>
+                <input type="text" id="dad_rating" name="dad_rating" value="{{ movie.dad_rating or '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="spencer_rating">Spencer's Rating</label>
+                <input type="text" id="spencer_rating" name="spencer_rating" value="{{ movie.spencer_rating or '' }}">
+            </div>
+        </div>
+        
+        <div class="form-group full-width">
+            <label for="imdb_link">IMDB Link</label>
+            <input type="url" id="imdb_link" name="imdb_link" value="{{ movie.imdb_link or '' }}">
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Save Changes</button>
+            <a href="{{ url_for('index') }}" class="btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.movie-form {
+    max-width: 900px;
+    margin: 30px auto;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.btn-submit,
+.btn-cancel {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-submit {
+    background: #28a745;
+    color: white;
+}
+
+.btn-submit:hover {
+    background: #218838;
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+}
+</style>
+{% endblock %}

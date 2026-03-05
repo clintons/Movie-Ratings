@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: movieratings_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-movieratings}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - movieratings_network
+    restart: unless-stopped
+
+  web:
+    build: .
+    container_name: movieratings_web
+    ports:
+      - "5000:5000"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-movieratings}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      OMDB_API_KEY: ${OMDB_API_KEY:-}
+      TMDB_API_KEY: ${TMDB_API_KEY:-}
+      TMDB_READ_ACCESS_TOKEN: ${TMDB_READ_ACCESS_TOKEN:-}
+    volumes:
+      - ./data:/app/data
+      - ./posters:/app/static/posters
+    depends_on:
+      - db
+    networks:
+      - movieratings_network
+    restart: unless-stopped
+    command: gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 app:app
+
+volumes:
+  postgres_data:
+
+networks:
+  movieratings_network:
+    driver: bridge

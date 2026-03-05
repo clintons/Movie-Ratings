@@ -1,0 +1,22 @@
+# Environment
+.env
+.env.*
+
+# Uploads (user-submitted files)
+posters/*
+!posters/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+data/
+
+# backup files
+*.sql
+*.bck

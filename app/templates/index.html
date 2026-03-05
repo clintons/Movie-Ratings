@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-layout">
+    <!-- Main content area (left side) -->
+    <main class="main-content">
+        <!-- Movie List -->
+        <div class="movie-list">
+            {% for movie in movies %}
+            <div class="movie-item">
+                <div class="movie-poster">
+                    <img src="{{ movie.poster_path or '/static/posters/placeholder.jpg' }}" 
+                         alt="{{ movie.title }} poster">
+                </div>
+                <div class="movie-details">
+                    <h2>{{ movie.title }}</h2>
+                    
+                    <div class="movie-info">
+                        <div class="info-row">
+                            <span class="label">Year:</span>
+                            <span>{{ movie.year or ' ' }}</span>
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="label">Genre:</span>
+                            <span>{{ movie.genre or ' ' }}</span>
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="label">Streaming:</span>
+                            <span>{{ movie.streaming or ' ' }}</span>
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="label">Lang/Country:</span>
+                            <span>{{ movie.lang_country or ' ' }}</span>
+                        </div>
+                        
+                        <div class="info-row ratings">
+                            <span class="label">Ratings:</span>
+                            <span>
+                                {% if movie.k_rating %}KLS: {{ movie.k_rating }}{% endif %}
+                                {% if movie.k_rating and movie.dad_rating %} | {% endif %}
+                                {% if movie.dad_rating %}Dad: {{ movie.dad_rating }}{% endif %}
+                                {% if (movie.k_rating or movie.dad_rating) and movie.spencer_rating %} | {% endif %}
+                                {% if movie.spencer_rating %}SMS: {{ movie.spencer_rating }}{% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="info-row">
+                            <span class="label">Category:</span>
+                            <span><strong>{{ movie.dad_category or ' ' }}</strong></span>
+                        </div>
+                        
+                        {% if movie.date_dad_watched %}
+                        <div class="info-row">
+                            <span class="label">Dad Watched:</span>
+                            <span>{{ movie.date_dad_watched.strftime('%m/%d/%Y') }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if movie.date_k_watched %}
+                        <div class="info-row">
+                            <span class="label">KLS Watched:</span>
+                            <span>{{ movie.date_k_watched.strftime('%m/%d/%Y') }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if movie.imdb_link %}
+                        <div class="info-row">
+                            <span class="label">IMDB:</span>
+                            <span><a href="{{ movie.imdb_link }}" target="_blank" class="imdb-link">IMDB</a></span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="movie-actions">
+                        <a href="{{ url_for('edit_movie', movie_id=movie.id) }}" class="btn-action">Edit</a>
+                        <form method="post" action="{{ url_for('delete_movie', movie_id=movie.id) }}" 
+                              onsubmit="return confirm('Delete this movie?');">
+                            <button type="submit" class="btn-action">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="{{ url_for('index', page=page-1, sort=sort_by, order=order, search=search, category=filter_category, genre=filter_genre) }}" 
+               class="page-link">&laquo; Previous</a>
+            {% endif %}
+            
+            <span class="page-info">Page {{ page }} of {{ total_pages }}</span>
+            
+            {% if page < total_pages %}
+            <a href="{{ url_for('index', page=page+1, sort=sort_by, order=order, search=search, category=filter_category, genre=filter_genre) }}" 
+               class="page-link">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Fixed Sidebar (right side) -->
+    <aside class="controls-sidebar">
+        <div class="control-section">
+            <h3>Search</h3>
+            <form method="get" class="search-form">
+                <input type="text" name="search" value="{{ search }}" 
+                       placeholder="Search by title..." class="search-input">
+                <button type="submit" class="btn-control">Search</button>
+                {% if search %}
+                    <a href="{{ url_for('index') }}" class="btn-control btn-secondary">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+        
+        <div class="control-section">
+            <h3>Sort By</h3>
+            <select onchange="window.location.href=this.value" class="control-select">
+                <option value="{{ url_for('index', sort='date_dad_watched', order='DESC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'date_dad_watched' and order == 'DESC' %}selected{% endif %}>
+                    Dad (Newest)
+                </option>
+                <option value="{{ url_for('index', sort='date_dad_watched', order='ASC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'date_dad_watched' and order == 'ASC' %}selected{% endif %}>
+                    Dad (Oldest)
+                </option>
+                <option value="{{ url_for('index', sort='date_k_watched', order='DESC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'date_k_watched' and order == 'DESC' %}selected{% endif %}>
+                    KLS (Newest)
+                </option>
+                <option value="{{ url_for('index', sort='date_k_watched', order='ASC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'date_k_watched' and order == 'ASC' %}selected{% endif %}>
+                    KLS (Oldest)
+                </option>
+                <option value="{{ url_for('index', sort='year', order='DESC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'year' and order == 'DESC' %}selected{% endif %}>
+                    Movie Year (Newest)
+                </option>
+                <option value="{{ url_for('index', sort='year', order='ASC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'year' and order == 'ASC' %}selected{% endif %}>
+                    Movie Year (Oldest)
+                </option>
+                <option value="{{ url_for('index', sort='genre', order='ASC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'genre' %}selected{% endif %}>
+                    Genre (A-Z)
+                </option>
+                <option value="{{ url_for('index', sort='k_rating', order='DESC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'k_rating' %}selected{% endif %}>
+                    KLS's Rating (High-Low)
+                </option>
+                <option value="{{ url_for('index', sort='dad_rating', order='DESC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'dad_rating' %}selected{% endif %}>
+                    Dad's Rating (High-Low)
+                </option>
+                <option value="{{ url_for('index', sort='spencer_rating', order='DESC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'spencer_rating' %}selected{% endif %}>
+                    SMS's Rating (High-Low)
+                </option>
+                <option value="{{ url_for('index', sort='dad_category', order='ASC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'dad_category' %}selected{% endif %}>
+                    Category
+                </option>
+                <option value="{{ url_for('index', sort='title', order='ASC', search=search, category=filter_category, genre=filter_genre) }}" 
+                        {% if sort_by == 'title' %}selected{% endif %}>
+                    Movie Title (A-Z)
+                </option>
+            </select>
+        </div>
+        
+        <div class="control-section">
+            <h3>Filter by Category</h3>
+            <select onchange="if(this.value) window.location.href=this.value" class="control-select">
+                <option value="{{ url_for('index', sort=sort_by, order=order, search=search, genre=filter_genre) }}">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ url_for('index', sort=sort_by, order=order, search=search, category=category, genre=filter_genre) }}"
+                        {% if filter_category == category %}selected{% endif %}>
+                    {{ category }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="control-section">
+            <h3>Filter by Genre</h3>
+            <select onchange="if(this.value) window.location.href=this.value" class="control-select">
+                <option value="{{ url_for('index', sort=sort_by, order=order, search=search, category=filter_category) }}">All Genres</option>
+                {% for genre in genres %}
+                <option value="{{ url_for('index', sort=sort_by, order=order, search=search, genre=genre, category=filter_category) }}"
+                        {% if filter_genre == genre %}selected{% endif %}>
+                    {{ genre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="control-section">
+            <a href="{{ url_for('add_movie') }}" class="btn-add-movie">+ Add New Movie</a>
+        </div>
+        
+        {% if search %}
+        <p class="results-info">Found {{ total }} movie(s)</p>
+        {% else %}
+        <p class="results-info">{{ total }} movies total</p>
+        {% endif %}
+    </aside>
+</div>
+
+<style>
+/* Page Layout - SIDEBAR ON RIGHT */
+.page-layout {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    flex-direction: row; /* Force horizontal layout */
+}
+
+/* Main Content - LEFT SIDE */
+.main-content {
+    flex: 1;
+    min-width: 0;
+    order: 1; /* Comes first (left) */
+}
+
+/* Fixed Sidebar - RIGHT SIDE */
+.controls-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 20px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    order: 2; /* Comes second (right) */
+}
+
+.control-section {
+    margin-bottom: 25px;
+}
+
+.control-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.btn-control {
+    padding: 10px;
+    background: #fff;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+}
+
+.btn-control:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.btn-secondary {
+    background: #6c757d;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.control-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.btn-add-movie {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #fff;
+    color: #666;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.btn-add-movie:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.results-info {
+    font-size: 13px;
+    color: #666;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Movie List */
+.movie-list {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.movie-item {
+    display: flex;
+    gap: 25px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+}
+
+.movie-poster img {
+    width: 200px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.movie-details {
+    flex: 1;
+}
+
+.movie-details h2 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 24px;
+}
+
+.movie-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.info-row {
+    display: flex;
+    gap: 10px;
+}
+
+.info-row .label {
+    font-weight: 600;
+    color: #555;
+    min-width: 150px;
+}
+
+.info-row.ratings {
+    color: #000;
+}
+
+.imdb-link {
+    color: #f5c518;
+    background: #666;
+    padding: 4px 10px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.imdb-link:hover {
+    background: #333;
+}
+
+/* Action Buttons - EXACT SAME SIZE */
+.movie-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    align-items: center;
+}
+
+.movie-actions form {
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+}
+
+.btn-action {
+    padding: 5px 10px;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    line-height: 1;
+    width: 60px;
+    height: 28px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.btn-action:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: 40px 0;
+}
+
+.page-link {
+    color: #666;
+    text-decoration: none;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.page-link:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.page-info {
+    color: #666;
+}
+
+/* Responsive - FORCE SIDEBAR TO TOP ON MOBILE */
+@media (max-width: 1024px) {
+    .page-layout {
+        flex-direction: column !important;
+    }
+    
+    .controls-sidebar {
+        width: 100%;
+        position: static;
+        order: 1 !important; /* Sidebar first on mobile */
+    }
+    
+    .main-content {
+        order: 2 !important; /* Content second on mobile */
+    }
+    
+    .movie-item {
+        flex-direction: column;
+    }
+    
+    .movie-poster img {
+        width: 100%;
+        height: auto;
+    }
+}
+</style>
+{% endblock %}

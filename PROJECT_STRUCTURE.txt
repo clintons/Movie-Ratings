@@ -1,0 +1,119 @@
+📦 movie-ratings-app/
+│
+├── 📖 DOCUMENTATION
+│   ├── INDEX.md ⭐ (START HERE - Project Overview)
+│   ├── QUICKSTART.md (5-minute setup guide)
+│   ├── README.md (Complete feature documentation)
+│   ├── SETUP_SUMMARY.md (This complete setup package info)
+│   └── PROXMOX_DEPLOYMENT.md (Deploy to Proxmox LXC)
+│
+├── 🐍 APPLICATION CODE
+│   └── app/
+│       ├── app.py (Flask web application)
+│       ├── init_db.py (Database initialization & Excel import)
+│       └── templates/
+│           ├── base.html (Minimalist design template)
+│           ├── index.html (Main movie list with pagination)
+│           ├── add_movie.html (Add new movie form)
+│           └── edit_movie.html (Edit existing movie form)
+│
+├── 🐳 DOCKER CONFIGURATION
+│   ├── Dockerfile (Application container definition)
+│   ├── docker-compose.yml (Full stack orchestration)
+│   ├── requirements.txt (Python dependencies)
+│   ├── .env.example (Environment variables template)
+│   └── .gitignore (Git ignore rules)
+│
+├── 🛠️ UTILITY SCRIPTS
+│   ├── start.sh ⭐ (Easy startup script - run this!)
+│   ├── fetch_posters.py (Batch download all posters)
+│   └── create_placeholder.py (Generate placeholder image)
+│
+├── 📁 DATA DIRECTORIES
+│   ├── data/
+│   │   ├── .gitkeep
+│   │   └── [Put Movie Ratings.csv OR Movie Ratings.xlsx here] ⭐
+│   │      (CSV is simpler and recommended!)
+│   │
+│   └── posters/
+│       ├── placeholder.jpg (Default poster image)
+│       ├── .gitkeep
+│       └── [Auto-generated posters: 1.jpg, 2.jpg, ...]
+│
+└── 📋 PROJECT FILES
+    ├── .gitignore
+    └── PROJECT_STRUCTURE.txt (This file)
+
+
+🎯 QUICK START:
+═══════════════
+1. Copy data file: F:\Claude\Movie Ratings.csv → ./data/
+   (or use Movie Ratings.xlsx - both work!)
+2. Run: ./start.sh
+3. Open: http://localhost:5000
+
+
+🔑 KEY FILES:
+═════════════
+START HERE:          INDEX.md
+QUICK SETUP:         QUICKSTART.md
+STARTUP SCRIPT:      start.sh
+EXCEL FILE GOES IN:  data/Movie Ratings.xlsx
+MAIN APP CODE:       app/app.py
+DOCKER CONFIG:       docker-compose.yml
+
+
+📦 TOTAL SIZE:
+══════════════
+Code:      ~50 KB
+Docker:    ~500 MB (when built)
+Posters:   ~5-10 MB per 100 movies
+Database:  ~1 MB per 1000 movies
+
+
+🚀 DEPLOYMENT OPTIONS:
+══════════════════════
+1. Local development:    ./start.sh
+2. Proxmox LXC:          See PROXMOX_DEPLOYMENT.md
+3. Cloud server:         docker-compose up -d
+4. Raspberry Pi:         docker-compose up -d
+
+
+💡 FEATURES:
+════════════
+✅ Minimalist design with white space
+✅ Pagination (10 movies per page)
+✅ Search by title or category
+✅ Sort by: Date, Year, Rating, Category, Title
+✅ Add new movies (web form)
+✅ Edit existing movies (edit link)
+✅ Auto movie poster fetching
+✅ PostgreSQL database
+✅ Docker containerized
+✅ Footer link to blog.strombotne.com
+
+
+🎨 DESIGN:
+══════════
+- Clean, professional, minimalist
+- Plenty of white space
+- Large movie poster thumbnails (200x300px)
+- Responsive (works on phone, tablet, desktop)
+- Title: "Movie Ratings Spreadsheet"
+- Subtitle: "... an historical listing of movies and TV mini-series viewings rated"
+
+
+🔧 TECH STACK:
+══════════════
+Backend:    Flask (Python)
+Database:   PostgreSQL 15
+Frontend:   HTML, CSS (no JavaScript frameworks)
+Container:  Docker + Docker Compose
+API:        OMDB (for movie posters)
+
+
+📞 SUPPORT:
+═══════════
+Docs:   See README.md
+Logs:   docker-compose logs -f
+Issues: Check QUICKSTART.md troubleshooting
