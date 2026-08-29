@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -28,6 +28,10 @@ DB_CONFIG = {
 
 OMDB_API_KEY = os.getenv('OMDB_API_KEY', '')
 POSTER_DIR = '/app/static/posters'
+ALLOWED_POSTER_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'}
+
+def allowed_poster_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_POSTER_EXTENSIONS
 
 # User class for Flask-Login
 class User(UserMixin):
@@ -362,7 +366,50 @@ def edit_movie(movie_id):
     categories = get_unique_values('dad_category')
     genres = get_unique_values('genre')
     
-    return render_template('edit_movie.html', movie=movie, categories=categories, genres=genres)
+    # Determine poster status
+    poster_path = movie.get('poster_path')
+    has_poster = bool(poster_path and poster_path != '/static/posters/placeholder.jpg'
+                      and os.path.exists(f"/app{poster_path}"))
+    
+    return render_template('edit_movie.html', movie=movie, categories=categories, genres=genres,
+                           has_poster=has_poster)
+
+@app.route('/upload-poster/<int:movie_id>', methods=['POST'])
+@login_required
+def upload_poster(movie_id):
+    """Upload a manual poster image for a movie"""
+    if 'poster_file' not in request.files:
+        return redirect(url_for('edit_movie', movie_id=movie_id))
+    
+    file = request.files['poster_file']
+    if not file or file.filename == '':
+        return redirect(url_for('edit_movie', movie_id=movie_id))
+    
+    if not allowed_poster_file(file.filename):
+        return redirect(url_for('edit_movie', movie_id=movie_id))
+    
+    try:
+        poster_path = f"{POSTER_DIR}/{movie_id}.jpg"
+        
+        # Open, convert to RGB (handles PNG/GIF transparency), and resize
+        img = Image.open(BytesIO(file.read()))
+        img = img.convert('RGB')
+        img.thumbnail((300, 450), Image.Resampling.LANCZOS)
+        img.save(poster_path, 'JPEG', quality=85)
+        
+        poster_url = f"/static/posters/{movie_id}.jpg"
+        
+        # Update database
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("UPDATE movies SET poster_path = %s WHERE id = %s", (poster_url, movie_id))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Error uploading poster for movie {movie_id}: {e}")
+    
+    return redirect(url_for('edit_movie', movie_id=movie_id))
 
 @app.route('/delete/<int:movie_id>', methods=['POST'])
 @login_required
