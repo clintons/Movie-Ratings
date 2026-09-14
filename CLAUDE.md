@@ -5,9 +5,8 @@ tree, so edits here go live on rebuild.
 
 ## Where things are
 
-- VM 505 at 192.168.2.16, a guest on the PVE host **Denmark** (192.168.2.50).
-  Reachable as `ssh strombot@192.168.2.16`. Note this VM's own `/etc/hostname`
-  reads `denmark`, which is wrong and is not the PVE host — don't trust it.
+- VM 505, hostname `docker-vm`, at 192.168.2.16 — a guest on the PVE host
+  **Denmark** (192.168.2.50). Reachable as `ssh strombot@192.168.2.16`.
 - Source at `/root/movie-ratings` — root-owned, so reads and writes need `sudo`.
   `strombot` has passwordless sudo. `cd /root/...` as strombot fails; use
   `sudo bash -c "cd /root/movie-ratings && ..."`.
