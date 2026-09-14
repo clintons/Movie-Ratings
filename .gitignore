@@ -18,3 +18,7 @@ Thumbs.db
 *.sql
 *.bck
 *.csv
+
+# editing backups (git-sync runs `git add -A`; keep these out of it)
+*.bak
+*.bak-*
