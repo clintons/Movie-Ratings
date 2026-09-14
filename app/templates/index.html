@@ -1,5 +1,30 @@
 {% extends "base.html" %}
 
+{#- Dad rates movies with cartoon poses instead of numbers. The Dud/DNF
+    categories win over the number; an unparseable rating falls back to raw text.
+    dad_rating is varchar, so |int(0) guards against non-numeric values. -#}
+{% macro dad_badge(rating, category) -%}
+    {%- set cat = (category or '')|trim|lower -%}
+    {%- set n = (rating or '')|trim|int(0) -%}
+    {%- set icon = 'empty-chair.png' if cat == 'dnf'
+        else ('snoozing.png' if cat == 'dud'
+        else ('wild-applause.png' if n >= 9
+        else ('polite-applause.png' if n == 8
+        else ('alert-viewer.png' if n >= 6
+        else ('snoozing.png' if n >= 1 else none))))) -%}
+    {%- set alt = 'Empty chair (did not finish)' if cat == 'dnf'
+        else ('Snoozing (dud)' if cat == 'dud'
+        else ('Wild applause (' ~ n ~ '/10)' if n >= 9
+        else ('Polite applause (8/10)' if n == 8
+        else ('Alert viewer (' ~ n ~ '/10)' if n >= 6
+        else ('Snoozing (' ~ n ~ '/10)' if n >= 1 else ''))))) -%}
+    {%- if icon -%}
+        <img class="dad-rating-icon" src="{{ url_for('static', filename='ratings/' ~ icon) }}" alt="{{ alt }}" title="{{ alt }}">
+    {%- else -%}
+        {{ rating }}
+    {%- endif -%}
+{%- endmacro %}
+
 {% block content %}
 <div class="page-layout">
     <!-- Main content area (left side) -->
@@ -36,13 +61,15 @@
                             <span>{{ movie.lang_country or ' ' }}</span>
                         </div>
                         
+                        {%- set dad_cat = (movie.dad_category or '')|trim|lower -%}
+                        {%- set dad_show = movie.dad_rating or dad_cat in ['dud', 'dnf'] -%}
                         <div class="info-row ratings">
                             <span class="label">Ratings:</span>
                             <span>
                                 {% if movie.k_rating %}KLS: {{ movie.k_rating }}{% endif %}
-                                {% if movie.k_rating and movie.dad_rating %} | {% endif %}
-                                {% if movie.dad_rating %}Dad: {{ movie.dad_rating }}{% endif %}
-                                {% if (movie.k_rating or movie.dad_rating) and movie.spencer_rating %} | {% endif %}
+                                {% if movie.k_rating and dad_show %} | {% endif %}
+                                {% if dad_show %}Dad: {{ dad_badge(movie.dad_rating, movie.dad_category) }}{% endif %}
+                                {% if (movie.k_rating or dad_show) and movie.spencer_rating %} | {% endif %}
                                 {% if movie.spencer_rating %}SMS: {{ movie.spencer_rating }}{% endif %}
                             </span>
                         </div>
@@ -207,6 +234,24 @@
         {% else %}
         <p class="results-info">{{ total }} movies total</p>
         {% endif %}
+
+        {%- set rating_legend = [
+            ('wild-applause.png',   'Wild applause',   '9–10'),
+            ('polite-applause.png', 'Polite applause', '8'),
+            ('alert-viewer.png',    'Alert viewer',    '6–7'),
+            ('snoozing.png',        'Snoozing',        '1–5 · Dud'),
+            ('empty-chair.png',     'Empty chair',     'DNF'),
+        ] -%}
+        <div class="rating-legend">
+            <h3>Dad's Rating Key</h3>
+            {% for icon, name, applies in rating_legend %}
+            <div class="legend-row">
+                <span class="legend-icon"><img src="{{ url_for('static', filename='ratings/' ~ icon) }}" alt="{{ name }}"></span>
+                <span class="legend-name">{{ name }}</span>
+                <span class="legend-applies">{{ applies }}</span>
+            </div>
+            {% endfor %}
+        </div>
     </aside>
 </div>
 
@@ -326,6 +371,51 @@
     border-top: 1px solid #e0e0e0;
 }
 
+/* Dad's rating key in the sidebar */
+.rating-legend {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.rating-legend h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 12px 0;
+}
+
+.legend-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+
+.legend-icon {
+    width: 26px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.legend-icon img {
+    height: 30px;
+    width: auto;
+}
+
+.legend-name {
+    font-size: 12px;
+    color: #333;
+    flex: 1;
+}
+
+.legend-applies {
+    font-size: 11px;
+    color: #888;
+    white-space: nowrap;
+}
+
 /* Movie List */
 .movie-list {
     display: flex;
@@ -381,6 +471,15 @@
 .info-row.ratings {
     color: #000;
 }
+
+/* Dad's rating poses: uniform height, natural width (sources are 250px tall) */
+.dad-rating-icon {
+    height: 32px;
+    width: auto;
+    vertical-align: middle;
+    margin: -4px 2px 0;
+}
+
 
 .imdb-link {
     color: #f5c518;
