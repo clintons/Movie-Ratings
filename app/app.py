@@ -57,6 +57,44 @@ def get_db_connection():
     """Create database connection"""
     return psycopg2.connect(**DB_CONFIG)
 
+
+# --- Single sign-on via the authentik proxy outpost ---------------------------------
+# The outpost authenticates every request and passes the identity in X-authentik-username.
+# Trusting that header is only safe because this app no longer publishes a network port:
+# it is bound to 127.0.0.1 and its docker network, so only the outpost (and the host) reach it.
+SSO_ADMIN_USERS = {u.strip().lower() for u in os.getenv('SSO_ADMIN_USERS', 'clintons').split(',') if u.strip()}
+
+
+def sso_lookup_or_create(username):
+    """Map an authentik identity onto a local user row, creating one on first sign-in.
+    An existing row keeps its is_admin flag; only newly created rows consult SSO_ADMIN_USERS."""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("SELECT id, username, is_admin FROM users WHERE lower(username) = lower(%s)", (username,))
+    row = cur.fetchone()
+    if row is None:
+        # No usable password: accounts created this way can only be reached through SSO.
+        locked = bcrypt.hashpw(os.urandom(32).hex().encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        cur.execute(
+            "INSERT INTO users (username, password_hash, is_admin) VALUES (%s, %s, %s) "
+            "RETURNING id, username, is_admin",
+            (username, locked, username.lower() in SSO_ADMIN_USERS))
+        row = cur.fetchone()
+        conn.commit()
+    cur.close()
+    conn.close()
+    return User(row['id'], row['username'], row['is_admin'])
+
+
+@app.before_request
+def sso_authenticate():
+    username = request.headers.get('X-authentik-username')
+    if not username:
+        return
+    if current_user.is_authenticated and current_user.username.lower() == username.lower():
+        return
+    login_user(sso_lookup_or_create(username))
+
 def get_unique_values(column_name):
     """Get unique non-null values from a column"""
     conn = get_db_connection()
