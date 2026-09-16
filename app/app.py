@@ -258,7 +258,17 @@ def index():
             # Ensure poster path is set
             if not movie['poster_path']:
                 movie['poster_path'] = "/static/posters/placeholder.jpg"
-    
+
+    # Greatest of All Time poster grid - only on the unfiltered first page
+    goat_movies = []
+    if page == 1 and not (search or filter_category or filter_genre):
+        cur.execute("""
+            SELECT id, title, year, poster_path, imdb_link FROM movies
+            WHERE LOWER(TRIM(dad_category)) = 'greatest of all time'
+            ORDER BY RANDOM()
+        """)
+        goat_movies = cur.fetchall()
+
     conn.commit()
     cur.close()
     conn.close()
@@ -272,6 +282,7 @@ def index():
     
     return render_template('index.html',
                          movies=movies,
+                         goat_movies=goat_movies,
                          page=page,
                          total_pages=total_pages,
                          sort_by=sort_by,

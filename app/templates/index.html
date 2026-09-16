@@ -26,9 +26,28 @@
 {%- endmacro %}
 
 {% block content %}
+{% if goat_movies %}
+<!-- Greatest of All Time: full-width poster grid above both columns -->
+<section class="goat-section">
+    <h2 class="section-title">Greatest of All Time</h2>
+    <div class="goat-grid">
+        {% for movie in goat_movies %}
+        {%- set label = movie.title ~ (' (' ~ movie.year ~ ')' if movie.year else '') -%}
+        <div class="goat-item">
+            {% if movie.imdb_link %}<a href="{{ movie.imdb_link }}" target="_blank" title="{{ label }}">{% endif %}
+            <img src="{{ movie.poster_path or '/static/posters/placeholder.jpg' }}"
+                 alt="{{ label }} poster" title="{{ label }}" loading="lazy">
+            {% if movie.imdb_link %}</a>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
 <div class="page-layout">
     <!-- Main content area (left side) -->
     <main class="main-content">
+        {% if goat_movies %}<h2 class="section-title">Recent</h2>{% endif %}
         <!-- Movie List -->
         <div class="movie-list">
             {% for movie in movies %}
@@ -256,6 +275,43 @@
 </div>
 
 <style>
+/* Section sub-titles (Greatest of All Time, Recent) */
+.section-title {
+    text-align: left;
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: #2c3e50;
+    margin: 0 0 20px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Greatest of All Time grid - spans full width, 5 across */
+.goat-section {
+    margin-bottom: 50px;
+}
+
+.goat-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+}
+
+.goat-item img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.goat-item a:hover img {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
+
 /* Page Layout - SIDEBAR ON RIGHT */
 .page-layout {
     display: flex;
@@ -584,6 +640,17 @@
     .movie-poster img {
         width: 100%;
         height: auto;
+    }
+
+    .goat-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .goat-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 }
 </style>
