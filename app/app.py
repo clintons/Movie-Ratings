@@ -110,6 +110,19 @@ def get_unique_values(column_name):
     conn.close()
     return values
 
+# Menu order for the condensed genre list; any genre not listed sorts after these, A-Z
+GENRE_ORDER = [
+    'Drama', 'Crime/Mystery', 'Thriller', 'Comedy', 'Rom-Com', 'Dramedy',
+    'Action/Adventure', 'Documentary', 'Family/Animation', 'Romance',
+    'Biography/History', 'Sci-Fi/Fantasy/Horror', 'Bollywood', 'Musical',
+    'Tragedy', 'Western',
+]
+
+def get_genres():
+    """Genres in use, in GENRE_ORDER"""
+    rank = {g: i for i, g in enumerate(GENRE_ORDER)}
+    return sorted(get_unique_values('genre'), key=lambda g: (rank.get(g, len(rank)), g))
+
 def fetch_and_save_poster(title, year, movie_id):
     """Fetch movie poster from OMDB API and save locally"""
     poster_path = f"{POSTER_DIR}/{movie_id}.jpg"
@@ -259,15 +272,25 @@ def index():
             if not movie['poster_path']:
                 movie['poster_path'] = "/static/posters/placeholder.jpg"
 
-    # Greatest of All Time poster grid - only on the unfiltered first page
-    goat_movies = []
-    if page == 1 and not (search or filter_category or filter_genre):
+    # Poster grid on first pages without search or genre: Greatest of All Time
+    # on the home page, otherwise the chosen category. A random 10 (two rows) of
+    # the movies that have a real poster; the count still covers the whole category.
+    grid_title = None
+    if page == 1 and not (search or filter_genre):
+        grid_title = filter_category or 'Greatest of All Time'
+    grid_movies, grid_total = [], 0
+    if grid_title:
         cur.execute("""
             SELECT id, title, year, poster_path, imdb_link FROM movies
-            WHERE LOWER(TRIM(dad_category)) = 'greatest of all time'
+            WHERE LOWER(TRIM(dad_category)) = LOWER(TRIM(%s))
+              AND poster_path <> '' AND poster_path NOT LIKE '%%placeholder%%'
             ORDER BY RANDOM()
-        """)
-        goat_movies = cur.fetchall()
+            LIMIT 10
+        """, (grid_title,))
+        grid_movies = cur.fetchall()
+        cur.execute("SELECT COUNT(*) AS n FROM movies WHERE LOWER(TRIM(dad_category)) = LOWER(TRIM(%s))",
+                    (grid_title,))
+        grid_total = cur.fetchone()['n']
 
     conn.commit()
     cur.close()
@@ -278,11 +301,13 @@ def index():
     
     # Get unique categories and genres for dropdowns
     categories = get_unique_values('dad_category')
-    genres = get_unique_values('genre')
+    genres = get_genres()
     
     return render_template('index.html',
                          movies=movies,
-                         goat_movies=goat_movies,
+                         grid_movies=grid_movies,
+                         grid_title=grid_title,
+                         grid_total=grid_total,
                          page=page,
                          total_pages=total_pages,
                          sort_by=sort_by,
@@ -342,7 +367,7 @@ def add_movie():
     
     # GET request - get unique values for dropdowns
     categories = get_unique_values('dad_category')
-    genres = get_unique_values('genre')
+    genres = get_genres()
     
     return render_template('add_movie.html', categories=categories, genres=genres)
 
@@ -413,7 +438,7 @@ def edit_movie(movie_id):
     
     # Get unique values for dropdowns (same as add_movie)
     categories = get_unique_values('dad_category')
-    genres = get_unique_values('genre')
+    genres = get_genres()
     
     # Determine poster status
     poster_path = movie.get('poster_path')
