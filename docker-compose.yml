@@ -28,13 +28,19 @@ services:
       OMDB_API_KEY: ${OMDB_API_KEY:-}
       TMDB_API_KEY: ${TMDB_API_KEY:-}
       TMDB_READ_ACCESS_TOKEN: ${TMDB_READ_ACCESS_TOKEN:-}
+      # authentik usernames made admin when their row is first created on SSO sign-in
+      SSO_ADMIN_USERS: ${SSO_ADMIN_USERS:-clintons,smstromb,kstrom,onur}
     volumes:
       - ./data:/app/data
       - ./posters:/app/static/posters
     depends_on:
       - db
     networks:
-      - movieratings_network
+      movieratings_network:
+      # The authentik outpost (ratings.strombotne.com) reaches the app here as movie-ratings-app:5000.
+      authentik-outpost:
+        aliases:
+          - movie-ratings-app
     restart: unless-stopped
     command: gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 app:app
 
@@ -44,3 +50,6 @@ volumes:
 networks:
   movieratings_network:
     driver: bridge
+  authentik-outpost:
+    name: authentik-outpost_default
+    external: true
