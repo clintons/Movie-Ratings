@@ -6,19 +6,23 @@
 {% macro dad_badge(rating, category) -%}
     {%- set cat = (category or '')|trim|lower -%}
     {%- set n = (rating or '')|trim|int(0) -%}
-    {%- set icon = 'empty-chair.png' if cat == 'dnf'
+    {#- A literal 0 also gets the empty chair; |int(0) alone can't tell 0 from junk -#}
+    {%- set zero = (rating or '')|trim in ['0', '0.0'] -%}
+    {%- set icon = 'empty-chair.png' if cat == 'dnf' or zero
         else ('snoozing.png' if cat == 'dud'
         else ('wild-applause.png' if n >= 9
         else ('polite-applause.png' if n == 8
         else ('alert-viewer.png' if n >= 6
         else ('snoozing.png' if n >= 1 else none))))) -%}
     {%- set alt = 'Empty chair (did not finish)' if cat == 'dnf'
+        else ('Empty chair (0/10)' if zero
         else ('Snoozing (dud)' if cat == 'dud'
         else ('Wild applause (' ~ n ~ '/10)' if n >= 9
         else ('Polite applause (8/10)' if n == 8
         else ('Alert viewer (' ~ n ~ '/10)' if n >= 6
-        else ('Snoozing (' ~ n ~ '/10)' if n >= 1 else ''))))) -%}
+        else ('Snoozing (' ~ n ~ '/10)' if n >= 1 else '')))))) -%}
     {%- if icon -%}
+        {%- if (rating or '')|trim %}{{ rating|trim }} {% endif -%}
         <img class="dad-rating-icon" src="{{ url_for('static', filename='ratings/' ~ icon) }}" alt="{{ alt }}" title="{{ alt }}">
     {%- else -%}
         {{ rating }}
@@ -63,15 +67,21 @@
         <!-- Movie List -->
         <div class="movie-list">
             {% for movie in movies %}
-            <div class="movie-item">
+            {#- DNS/DNF: title, ratings, category, dates and IMDB only - no poster -#}
+            {%- set dad_cat = (movie.dad_category or '')|trim|lower -%}
+            {%- set brief = dad_cat in ['dns', 'dnf'] %}
+            <div class="movie-item{{ ' movie-item--brief' if brief }}">
+                {% if not brief %}
                 <div class="movie-poster">
                     <img src="{{ movie.poster_path or '/static/posters/placeholder.jpg' }}" 
                          alt="{{ movie.title }} poster">
                 </div>
+                {% endif %}
                 <div class="movie-details">
                     <h2>{{ movie.title }}</h2>
                     
                     <div class="movie-info">
+                        {% if not brief %}
                         <div class="info-row">
                             <span class="label">Year:</span>
                             <span>{{ movie.year or ' ' }}</span>
@@ -91,8 +101,8 @@
                             <span class="label">Lang/Country:</span>
                             <span>{{ movie.lang_country or ' ' }}</span>
                         </div>
+                        {% endif %}
                         
-                        {%- set dad_cat = (movie.dad_category or '')|trim|lower -%}
                         {%- set dad_show = movie.dad_rating or dad_cat in ['dud', 'dnf'] -%}
                         <div class="info-row ratings">
                             <span class="label">Ratings:</span>
@@ -271,7 +281,7 @@
             ('polite-applause.png', 'Polite applause', '8'),
             ('alert-viewer.png',    'Alert viewer',    '6–7'),
             ('snoozing.png',        'Snoozing',        '1–5 · Dud'),
-            ('empty-chair.png',     'Empty chair',     'DNF'),
+            ('empty-chair.png',     'Empty chair',     '0 · DNF'),
         ] -%}
         <div class="rating-legend">
             <h3>Dad's Rating Key</h3>
@@ -282,6 +292,57 @@
                 <span class="legend-applies">{{ applies }}</span>
             </div>
             {% endfor %}
+
+            {%- set rating_scale = [
+                ('10', "a favorite that I would watch a 2nd (3rd?) time."),
+                ('9', "most excellent and memorable."),
+                ('8', "very good, expect to be entertained."),
+                ('7', "fair to good but mostly a time sponge."),
+                ('6', "flawed or disturbing in some way, not my cup of tea."),
+                ('5', "pretty awful and can't be recommended."),
+                ('4', "a dud - suffered through it and peeved that I was suckered."),
+                ('3 2 1', "...already walked out; DNF."),
+                ('0', "15 mins. in and realized not for me."),
+            ] -%}
+            <dl class="rating-scale">
+                {% for score, meaning in rating_scale %}
+                <dt>{% for n in score.split() %}&ldquo;{{ n }}&rdquo;{{ ' ' if not loop.last }}{% endfor %}</dt>
+                <dd>{{ meaning }}</dd>
+                {% endfor %}
+            </dl>
+
+            <h3 class="legend-subtitle">Category Key</h3>
+            <p class="legend-note">Category may be used in conjunction with Rating. i.e. a viewing that is a &ldquo;watchable 8&rdquo; is actually a &ldquo;7&nbsp;&frac12;&rdquo; a &ldquo;notable 8&rdquo; is an &ldquo;8&nbsp;&frac12;&rdquo;</p>
+            <dl class="category-key">
+                <dt>Quirky</dt>
+                <dd>off-the-wall, bizarre, surreal, or unusual though maybe not everyone's taste.</dd>
+                <dt>Notable</dt>
+                <dd>inspiring or thought provoking, enlightening.</dd>
+                <dt>DNF</dt>
+                <dd>did not finish</dd>
+                <dt>DNS</dt>
+                <dd>did not start</dd>
+            </dl>
+
+            {%- set kls_scale = [
+                ('10', "FAVORITE of all time"),
+                ('9', "EXCEPTIONAL, just short of an all-time fave"),
+                ('8', "loved it and would highly recommend to others"),
+                ('7', "I really liked this, might even watch it twice"),
+                ('6', "entertaining"),
+                ('5', "ambivalent"),
+                ('4', "meh, kind of bored/unimpressed"),
+                ('3', "really didn't like this"),
+                ('2', "actively hated"),
+                ('1', "the worst of all time"),
+            ] %}
+            <h3 class="legend-subtitle">KLS's Rating Key</h3>
+            <dl class="rating-scale">
+                {% for score, meaning in kls_scale %}
+                <dt>{{ score }}</dt>
+                <dd>{{ meaning }}</dd>
+                {% endfor %}
+            </dl>
         </div>
     </aside>
 </div>
@@ -361,6 +422,10 @@
     flex-shrink: 0;
     position: sticky;
     top: 20px;
+    /* Taller than the viewport once the keys are added: scroll inside the panel */
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-sizing: border-box;
     background: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
@@ -498,6 +563,57 @@
     font-size: 11px;
     color: #888;
     white-space: nowrap;
+}
+
+/* Number scale, under the rating icons */
+.rating-scale {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 8px;
+    row-gap: 5px;
+    margin: 12px 0 0 0;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.rating-scale dt {
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+}
+
+.rating-scale dd {
+    margin: 0;
+    color: #666;
+}
+
+/* Category key, under Dad's rating key */
+.rating-legend .legend-subtitle {
+    margin-top: 16px;
+}
+
+.legend-note {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.45;
+    margin: 0 0 10px 0;
+}
+
+.category-key {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.category-key dt {
+    font-weight: 600;
+    color: #333;
+}
+
+.category-key dd {
+    margin: 0 0 8px 0;
+    color: #666;
+    font-size: 11px;
 }
 
 /* Movie List */
@@ -654,6 +770,8 @@
     .controls-sidebar {
         width: 100%;
         position: static;
+        max-height: none;
+        overflow-y: visible;
         order: 1 !important; /* Sidebar first on mobile */
     }
     

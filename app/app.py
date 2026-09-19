@@ -110,6 +110,20 @@ def get_unique_values(column_name):
     conn.close()
     return values
 
+# Categories offered in the dropdowns even before any movie uses them.
+EXTRA_CATEGORIES = ['DNS']
+
+# Did not start / did not finish: listed without a poster, so none is fetched
+# for them and their category has no poster grid.
+NO_POSTER_CATEGORIES = {'dns', 'dnf'}
+
+def get_categories():
+    """Categories in use, plus EXTRA_CATEGORIES, A-Z ignoring case"""
+    values = get_unique_values('dad_category')
+    in_use = {v.strip().lower() for v in values}
+    values += [c for c in EXTRA_CATEGORIES if c.lower() not in in_use]
+    return sorted(values, key=str.lower)
+
 # Menu order for the condensed genre list; any genre not listed sorts after these, A-Z
 GENRE_ORDER = [
     'Drama', 'Crime/Mystery', 'Thriller', 'Comedy', 'Rom-Com', 'Dramedy',
@@ -261,6 +275,8 @@ def index():
     
     # Fetch posters for movies (in background, don't block page load)
     for movie in movies:
+        if (movie.get('dad_category') or '').strip().lower() in NO_POSTER_CATEGORIES:
+            continue
         if not movie.get('poster_path'):
             poster_url = fetch_and_save_poster(movie['title'], movie['year'], movie['id'])
             # Update database with poster path
@@ -278,6 +294,8 @@ def index():
     grid_title = None
     if page == 1 and not (search or filter_genre):
         grid_title = filter_category or 'Greatest of All Time'
+    if (grid_title or '').strip().lower() in NO_POSTER_CATEGORIES:
+        grid_title = None
     grid_movies, grid_total = [], 0
     if grid_title:
         cur.execute("""
@@ -300,7 +318,7 @@ def index():
     total_pages = (total + per_page - 1) // per_page
     
     # Get unique categories and genres for dropdowns
-    categories = get_unique_values('dad_category')
+    categories = get_categories()
     genres = get_genres()
     
     return render_template('index.html',
@@ -366,7 +384,7 @@ def add_movie():
         return redirect(url_for('index'))
     
     # GET request - get unique values for dropdowns
-    categories = get_unique_values('dad_category')
+    categories = get_categories()
     genres = get_genres()
     
     return render_template('add_movie.html', categories=categories, genres=genres)
@@ -437,7 +455,7 @@ def edit_movie(movie_id):
         return "Movie not found", 404
     
     # Get unique values for dropdowns (same as add_movie)
-    categories = get_unique_values('dad_category')
+    categories = get_categories()
     genres = get_genres()
     
     # Determine poster status
