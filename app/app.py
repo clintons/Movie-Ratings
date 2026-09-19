@@ -117,12 +117,19 @@ EXTRA_CATEGORIES = ['DNS']
 # for them and their category has no poster grid.
 NO_POSTER_CATEGORIES = {'dns', 'dnf'}
 
+# Menu order for categories, best to worst; any category not listed sorts after these, A-Z
+CATEGORY_ORDER = [
+    'Greatest of All Time', 'Superb', 'Notable', 'Quirky', 'Good', 'Watchable',
+    'Dud', 'DNF', 'DNS', 'PBS Masterpiece Theatre',
+]
+
 def get_categories():
-    """Categories in use, plus EXTRA_CATEGORIES, A-Z ignoring case"""
+    """Categories in use, plus EXTRA_CATEGORIES, in CATEGORY_ORDER"""
     values = get_unique_values('dad_category')
     in_use = {v.strip().lower() for v in values}
     values += [c for c in EXTRA_CATEGORIES if c.lower() not in in_use]
-    return sorted(values, key=str.lower)
+    rank = {c.lower(): i for i, c in enumerate(CATEGORY_ORDER)}
+    return sorted(values, key=lambda c: (rank.get(c.strip().lower(), len(rank)), c.lower()))
 
 # Menu order for the condensed genre list; any genre not listed sorts after these, A-Z
 GENRE_ORDER = [
